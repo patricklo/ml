@@ -136,7 +136,94 @@ for i in range(10):
     clf = clf.fit(xtrain,ytrain)
     score = clf.score(xtest,ytest)
     test.append(score)
-plt.plot(range(1,11), test, color='red', label = 'max_depth')
+#plt.plot(range(1,11), test, color='red', label = 'max_depth')
+##plt.legend()
+#plt.show()
+
+
+
+###class_weight & min_weight_fraction_leaf 目标权重参数
+# 完成样本标签平衡的参数
+# 样本不平衡是指在一组数据中，标签的一类天生占有很大的比例。
+#   比如说，在银行要判断'一个办了信用卡的人是否会违约'，就是 '是' vs '否' （1% ： 99%）的比例。
+# 这种分类状况下，即便模型什么也不做，全把结果预测成'否'，正确率也有99%。
+# 因此我们要使用class_weight参数对样本标签进行一定的均衡，给少量的标签更多的权重，让模型更偏向于少量的类。
+
+
+
+
+'''交叉验证cross_val_score
+是用来观察模型的稳定性的一种方法，我们将数据划分为n份，依次使用其中一份作为测试集，其他n-1份作为训练集，多次计算模型的精确性来评估模型的平均准确程度。
+训练集和测试集的划分会干扰模型的结果 ，因此用交叉验证n次的结果求出的平均值，是对模型效果的一个更好的度量。
+'''
+from sklearn.model_selection import cross_val_score
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.datasets import load_boston
+boston = load_boston()  ##回归类型的数据，与红酒load_wine分类数据不一样，
+##回归模型
+regressor = DecisionTreeRegressor(random_state=0)
+#交叉验证分数：
+### regressor: 可以是分类、回归、支持向量机等
+### data:完整数据， 不需要分训练集和测试集
+###target:完整标签
+###CV： 测试次数
+###scoring: 衡量模型的分数算法   (回归regressor，默认返回的是r square分数)
+cross_val_score(regressor, boston.data, boston.target, cv=10,scoring='neg_mean_squared_error')
+
+
+
+
+'''一维回归的图像绘制 
+
+接下来我们到二维平面上来观察决策树是怎样拟合一条曲线的，我们用回归树来拟合正弦曲线，
+创建一条有噪声的正弦曲线
+来观察回归树的表现
+'''
+#1。
+import numpy as np
+import matplotlib.pyplot as plt
+##2.创建一条有噪声的正弦曲线
+##在这一步，我们的基本思路是，先创建一组随机的，分布在0-5上的横坐标的取值（x),然后将这一组值放到sin函数中去生成纵坐标的值(y), 接着再到y上去添加噪声信息。
+##全程将使用numpy来为我们生成这个正弦曲线
+rng = np.random.RandomState(1) #生成随机数据
+x = np.sort(5 * rng.rand(80,1), axis=0)  #随机80行，1列的数据
+y = np.sin(x).ravel()  ##ravel降维函数 二维降为一维
+y[::5] += 3*(0.5-rng.rand(16))  ##加入噪声信息， 每隔5个取一个数，一共16个，
+#np.random.rand(数据结构) 生成 随机 数的函数
+
+#3.实例化 & 训练模型
+#用2个模型：因为想知道在不同模型的拟合效果
+regr_1 = DecisionTreeRegressor(max_depth=2)
+regr_2 = DecisionTreeRegressor(max_depth=5)
+regr_1.fit(x,y)
+regr_2.fit(x,y)
+
+#4.测试集导入模型，预测结果
+#np.newaxis 增维的效果(跟reval用法相反），将下面的随机数组（一维,n个数字的数组）,变成二级（ n行 1列， n*1）
+#x_test.shape
+x_test = np.arange(0.0, 5.0, 0.01)[:, np.newaxis]  ##生成 从0到5结束的随机数，且有顺序，步长为0.01
+y_1 = regr_1.predict(x_test) #predict, 结果是 导入测试集，输出每个样本点的回归/分类的结果， 也就是输入x，得出y
+y_2 = regr_2.predict(x_test)
+
+#5.绘图
+plt.figure()
+plt.scatter(x,y,s=20, edgecolors='black', c='darkorange', label='data')
+plt.plot(x_test, y_1, color='cornflowerblue', label='max_dep_2', linewidth=2)
+plt.plot(x_test, y_2, color='yellowgreen', label='max_dep_5', linewidth=2)
+plt.xlabel('data')
+plt.ylabel('target')
+plt.title('Decision Tree Regression')
 plt.legend()
 plt.show()
+
+
+
+
+
+
+
+
+
+
+
 
