@@ -26,6 +26,21 @@ DecisionTreeClassifier(criterion="gini",  //不纯度的算法选择 基尼系�
                  min_impurity_split=None,
                  class_weight=None,
                  ccp_alpha=0.0)
+
+1. x_train - 包括所有自变量，这些变量将用于训练模型 / 测试模型。    二维数组，行是数据，列代表数据的特征数据。（178，13）代表有178行数据，13个特征                                               (大小=1-test_size)
+3. x_test  - 这是数据中剩余的40%的自变量部分，这些自变量将不会在训练阶段使用，并将用于进行预测，以测试模型的准确性。   (大小=test_size)
+
+2. y_train - 这是因变量，需要此模型进行预测，其中包括针对自变量的类别标签，我们需要在训练/拟合模型时指定我们的因变量。 类别标签   (大小=1-test_size)
+4. y_test  - 此数据具有测试数据的类别标签，这些标签将用于测试实际类别和预测类别之间的准确性。                        (大小=test_size)
+5. random_state：控制随机状态,固定random_state后，每次构建的模型是相同的、生成的数据集是相同的、每次的拆分结果也是相同的。
+
+X_train,y_train 是原始数据集划分出来作为训练模型的，fit模型的时候用。
+     关系： X_train是二维数组。行数代表有多少数据，列数代表数据的特征数量。
+           y_train是一个向量。
+           y_train中的元素个数和X_train的行数一样
+           y_train中第i个元素表示X_train中第i行的数据所对应的output。
+X_test,y_test 这部分的数据不参与模型的训练，而是用于评价训练出来的模型好坏，score评分的时候用。
+
 '''
 import pandas as pd
 import numpy as np
@@ -36,7 +51,12 @@ wine = load_wine()
 data_df = pd.concat([pd.DataFrame(wine.data), pd.DataFrame(wine.target)], axis=1)
 ##print(data_df)
 
+print(wine.data.shape)
 xtrain,xtest,ytrain,ytest = train_test_split(wine.data,wine.target, test_size=1/3)
+print(xtrain.shape)
+print(xtest.shape)
+print(ytrain.shape)
+print(ytest.shape)
 clf = tree.DecisionTreeClassifier(criterion='entropy', random_state=0) ##random_state 控制随机性，保证score出来每次都一样
 clf = clf.fit(xtrain, ytrain)
 score = clf.score(xtest, ytest) #返回预测的准确度accuracy

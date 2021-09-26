@@ -1,4 +1,4 @@
-'''RandomForrest随机森林是一种集成算法
+'''RandomForrestClassifier随机森林是一种集成算法
 
 集成学习(ensemble learning)是时下非常流行的机器学习算法，它本身不是一个单纯的机器学习算法，而是通过在数据上构建多个模型，集成所有模型的建模结果。
 基本上所有的机器学习领域都可以看到集成学习的身影，在现实中集成学习也有相当大的作用。
@@ -20,6 +20,9 @@
 
 # RandomForrestClassifier随机森林分类器
 ## 1.导入所需包
+import numpy as np
+import pandas as pd
+from scipy.special import comb
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.datasets import load_wine
@@ -75,6 +78,74 @@ print('Singel Tree:{}'.format(score_c),
 #plt.figure(figsize=[20, 5])
 #plt.plot(range(1,201), superpa)
 #plt.show()
+
+'''随机森林用了什么方法，来保证集成的效果一定好于单个分类器（即决策树）？
+
+本质上是使用了bagging算法，bagging算法是对基评估器的预测结果进行平均或用多数表决的原则 来决定集成评估器的结果。
+在刚才的红酒例子中，我们建立了25颗树，对任何一个样本而言，平均或多数表决原则都是有效的。 出错的可能性极小 '''
+
+# 出错概率
+prob = np.array([comb(25, i) * (0.2 ** i) * ((1-0.2) ** (25-i)) for i in range(13,26)]).sum()
+print(prob)
+
+'''为什么随机森林的每颗树都有不同的结果？
+随机森林使用random_state参数，用法和决策树相似，只不过在分类树中，一个random_state只控制生成一棵树，
+但随机森林中的random_state控制的是生成森林的模式，而非让一个森林中只有一棵树
+'''
+# 查看随机森林生成的树的状况，看是不是不一样
+#rfc = RandomForestClassifier(n_estimators=10, random_state=2)
+#rfc = rfc.fit(xtrain, ytrain)
+#print(rfc.estimators_)
+#for i in range(len(rfc.estimators_)):
+#    print(rfc.estimators_[i].random_state)
+
+'''我们可以观察到，当random_state固定时，随机森林中生成是一组固定的树，但每个树依然是不一致的，这是用 "随机挑选特征进行分枝"的方法得到的随机性
+
+但使用random_state也有局限性，当我们需要成千上万棵树的时候，数据不一定能够提供成千上万的特征来让我们构建尽量多尽量不同的树。
+因此除了random_state，我们还需要其他的随机性。
+
+使用bootstrap & oob_score:
+    要让每个基分类器尽量都不一样，一种很容易理解的方法是使用不同的训练集来进行训练。
+        bagging算法就是使用bootstrap=True参数来控制样本抽样技术的参数： 有放回抽样，每抽一个样本，该样本会被放回并参与进行下一次的抽取。
+            通常没有被抽取到的样本就叫out of bag data (简称： oob)
+        所以，也就是说，在使用随机森林时，我们可以不划分测试集和训练集，只需要用于oob数据来测试我们的模型即可。（前提是oob数据足够）
+        所以通常需要设置oob_score=True
+'''
+#无需划分训练集和测试集
+rfc = RandomForestClassifier(n_estimators=25, oob_score=True)
+rfc = rfc.fit(wine.data, wine.target)
+#查看oob score
+#print(rfc.oob_score_) ##0.97 -> 代表oob数据预测出的准确率
+print([*zip(wine.feature_names, rfc.feature_importances_)])
+rfc.apply(xtest) ##返回测试集中每一个叶子节点的索引 Index, 一般用于画decision tree
+#print(rfc.predict(xtest))  #返回对xtest测试集预测的标签 , 真正结果在ytest,我们其实就在对比 xtest/ytest的之间的标签 是否一致
+#print(rfc.predict_proba(xtest))  #返回每一个样本，分别属于3个标签的概率（标签数目可以变化）
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
