@@ -79,6 +79,8 @@ X,y = make_circles(100, factor=0.1, noise=.1)
 # plt.show()
 
 #这个时候，如果我们能能够在原来的x,y基础上，添加一个维度r，变成三维，我们可视化化这个数据，来看看添加维度带来的影响
+#计算r,并将r作为数据的第三维度来将数据升维的过程，被称为"核变换"，即是将数据投影到高维空间中，以寻找能够将数据完美分割的超平面
+#为了详细解释这个过程，我们要下面会引入SVM中的核心概念：核函数
 r = np.exp(-(X**2).sum(1))
 rlim = np.linspace(min(r), max(r), 100)
 
@@ -86,6 +88,8 @@ from mpl_toolkits import mplot3d
 #定义绘制3D图像的函数
 #elev表示上下旋转的角度
 #azim表示平等旋转的角度
+'''可以看见，此时此刻我们的数据明显是线性可分的了:我们可以使用一个平面来将数据完全分开，并使平面的上方
+的所有数据点为一类，平面下方的所有数据点为另一类。'''
 def plot_3D(elev=30,azim=30,X=X,y=y):
     ax = plt.subplot(projection="3d")
     ax.scatter3D(X[:,0],X[:,1],r,c=y,s=50,cmap='rainbow')
